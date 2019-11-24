@@ -57,6 +57,8 @@ def enumerate_funcs (path):
     """ Returns a list of function names for functions present in a HAHA file.
     Args:
         path (str): The path of the target file.
+    Returns:
+        list of str: The list of function names.
     """
     output = check_output(['java', '-jar', 'humoresque.jar', '-e', path]).decode()
     names = filter(lambda x: x != '', output.split('\n'))
@@ -67,6 +69,8 @@ def get_arity (path, func):
     """ Returns the arity of a function present in a HAHA file.
     Args:
         path (str): The path of the target file.
+    Returns:
+        int: The arity.
     """
     output = check_output(['java', '-jar', 'humoresque.jar', '-a', func, path]).decode()
     return int(output)
@@ -76,6 +80,8 @@ def transpile_func (path, func):
     """ Transpiles a function present in a HAHA file to Java and returns it.
     Args:
         path (str): The path of the target file.
+    Returns:
+        str: The transpiled source code.
     """
     output = check_output(['java', '-jar', 'humoresque.jar', '-f', func, path]).decode()
     return output
@@ -85,6 +91,8 @@ def map_args (arity):
     """ Generates an array-argument mapping for a function with the given arity.
     Args:
         arity (int): The arity.
+    Returns:
+        str: The array-argument mapping.
     """
     i = 0
     out = "" # Build output here.
@@ -99,7 +107,9 @@ def map_args (arity):
 def gen_reg (class_names):
     """ Generates registration calls for funtions with the given class names.
     Args:
-        arity (int): The arity.
+        class_names (list of str): The class names.
+    Returns:
+        str: The registration calls.
     """
     out = ""
     for class_name in class_names:
