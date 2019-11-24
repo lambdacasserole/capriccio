@@ -3,3 +3,6 @@
 
 # Humoresque binary
 humoresque.jar
+
+# IDE files
+.idea

@@ -31,8 +31,13 @@ public class Call extends Expression {
         return expressions;
     }
 
+    /**
+     * Gets the function identifier (name).
+     *
+     * @return  the function identifier (name)
+     */
     public String getIdentifier() {
-      return identifier;
+        return identifier;
     }
 
     /**
@@ -51,7 +56,7 @@ public class Call extends Expression {
         tokenStream.readExpecting(TokenType.OPEN_PARENTHESIS);
 
         // Read function identifier.
-        Token func = tokenStream.readExpecting(TokenType.IDENTIFIER);
+        Token token = tokenStream.readExpecting(TokenType.IDENTIFIER);
 
         // Read until call end.
         while (tokenStream.peek().getType() != TokenType.CLOSE_PARENTHESIS) {
@@ -64,7 +69,8 @@ public class Call extends Expression {
         // Create and return block.
         Call output = new Call();
         output.expressions = expressions.toArray(new Expression[] {});
-        output.identifier = func.getText();
+        output.token = token;
+        output.identifier = token.getText();
         return output;
     }
 }
