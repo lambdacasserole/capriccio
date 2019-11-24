@@ -78,12 +78,25 @@ def gen_args (arity):
         i += 1
     return out
 
+def gen_reg (names):
+    out = ""
+    i = 0
+    while i < len(names):
+        if len(out) > 0:
+            out += "\n            "
+        out += "evaluator.addFunction(new " + names[i] + "Function());"
+        i += 1
+    return out
+
 # Go through each HAHA file in the `./src` folder.
 src_files = glob('./src/*.haha')
+copyfile('./build/Main.java.template', './build/Main.java')
+cap_names = []
 for src_file in src_files:
     func_names = enumerate_funcs(src_file) # Get functions in file.
     for func_name in func_names:
         func_capitalized_name = func_name.capitalize()
+        cap_names += [func_capitalized_name]
         out_file = './build/' + func_capitalized_name + 'Function.java'
         copyfile('./build/NamedFunction.java.template', out_file)
         transpiled = transpile_func(src_file, func_name).replace('\n', '\n    ').strip()
@@ -95,3 +108,6 @@ for src_file in src_files:
             ('body', transpiled),
             ('arity', str(arity)),
             ('args', args)])
+
+fill_template('./build/Main.java', [
+            ('function_registration', gen_reg(cap_names))])

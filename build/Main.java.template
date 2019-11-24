@@ -1,0 +1,77 @@
+import java.util.Scanner;
+import java.io.*;
+
+/**
+ * The Capriccio interpreter.
+ *
+ * @since 23/11/19
+ * @author Saul Johnson <saul.a.johnson@gmail.com>
+ */
+public class Main {
+
+    /**
+     * Reads the entire text of a file into a string.
+     *
+     * @param path                      the path of the file to read from
+     * @return                          the file text
+     * @throws FileNotFoundException    if the file could not be found
+     */
+    private static String readFileText(String path) throws FileNotFoundException {
+        return new Scanner(new File(path)).useDelimiter("\\A").next();
+    }
+
+    /**
+     * The program main method.
+     *
+     * @param args  the command-line arguments passed
+     */
+    public static void main(String[] args) {
+
+        // No file passed? Exit with error.
+        if (args.length == 0) {
+            System.err.println("Please pass an input file.");
+            System.exit(1);
+        }
+
+        // Now try interpretation of source file.
+        String inputFile = args[0];
+        try {
+            // Read source file.
+            String source = readFileText(inputFile);
+
+            // Tokenize file and put tokens in a stream.
+            Tokenizer tokenizer = new CapriccioTokenizer();
+            TokenStream tokenStream = new TokenStream(tokenizer.tokenize(source));
+
+            // Parse token stream.
+            Expression program = Expression.parse(tokenStream);
+
+            // Set up evaluator with user-specified functions.
+            Evaluator evaluator = new Evaluator();
+            {{ function_registration }}
+
+            // Actually print program result.
+            System.out.println(evaluator.evaluate(program));
+        } catch (FileNotFoundException e) {
+
+            // File not found.
+            System.err.println("Error: Input file '" + inputFile + "' not found.");
+            System.exit(1);
+        } catch (TokenizationException e) {
+
+            // Tokenizer rejected source.
+            System.err.println(e.getMessage());
+            System.exit(1);
+        } catch (ParseException e) {
+
+            // Parser rejected source.
+            System.err.println(e.getMessage());
+            System.exit(1);
+        } catch (EvaluationException e) {
+
+            // Runtime error.
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+    }
+}
