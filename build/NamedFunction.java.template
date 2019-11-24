@@ -1,0 +1,26 @@
+public class {{ capitalized_name }}Function implements NamedFunction<int[], Integer> {
+
+    // This function has been transpiled from HAHA.
+    private static {{ body }}
+
+    /**
+     * @inheritDoc
+     */
+    public Integer apply(int[] args) {
+        return {{ name }}({{ args }});
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public String getName() {
+        return "{{ name }}";
+    }
+
+   /**
+    * @inheritDoc
+    */
+    public int getArity() {
+        return {{ arity }};
+    }
+}

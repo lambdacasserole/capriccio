@@ -14,7 +14,8 @@ public class Main {
       TokenStream tokenStream = new TokenStream(tokenizer.tokenize(source));
       Expression program = Expression.parse(tokenStream);
       Evaluator evaluator = new Evaluator();
-      // TODO: Add functions here.
+      evaluator.addFunction(new collatzFunction());
+      evaluator.addFunction(new sumFunction());
       System.out.println(evaluator.evaluate(program));
     } catch (FileNotFoundException e) {
 

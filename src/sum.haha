@@ -1,0 +1,30 @@
+/* Sum
+ *
+ * Author: Saul Johnson <saul.a.johnson@gmail.com>
+ *
+ * This function calculates the sum of two numbers, and demonstrates the use of a loop invariant.
+ */
+
+function sum (x : Z, y : Z) : Z
+precondition y >= 0 // If y is less than zero, the function never terminates!
+postcondition sum = x + y
+var ans : Z
+    n : Z
+begin
+	ans := x
+	{ y >= 0 /\ ans = x } // Remember, we have to explicitly carry this information through!
+	n := y
+	{ y >= 0 /\ n >= 0 /\ ans = x /\ n = y }
+	while n != 0 do // If we use n > 0 here, it isn't enough!
+	invariant y >= 0 /\ n >= 0 /\ ans + n = x + y // Specify loop invariant.
+	begin
+		ans := ans + 1
+		{ y >= 0 /\ n > 0 /\ ans + n - 1 = x + y } // Intermediate step, loop invariant doesn't hold here.
+		n := n - 1
+		{ y >= 0 /\ n >= 0 /\ ans + n = x + y } // Now the invariant holds again!
+		skip
+	end
+	// Loop invariant remains true at the end, but we can eliminate n because n = 0.
+	{ n = 0 /\ ans + n = x + y }
+	sum := ans
+end
