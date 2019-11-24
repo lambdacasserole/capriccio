@@ -1,4 +1,6 @@
 import re
+import sys
+import os.path
 from glob import glob
 from subprocess import check_output
 from shutil import copyfile
@@ -123,6 +125,11 @@ def gen_reg (class_names):
 SRC_DIR = './src'
 BUILD_DIR = './build'
 MAIN_FILE = f'{BUILD_DIR}/Main.java'
+
+# First, check that Humoresque is available.
+if not os.path.isfile('humoresque.jar'):
+    print('Error: Could not find humoresque.jar', file=sys.stderr)
+    exit(1)
 
 # We'll need these for generating the main file.
 class_names = []
