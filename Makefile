@@ -5,6 +5,10 @@ main:
 	make clean
 	make java
 	make classes
+	make standalone
+
+standalone:
+	cd ./build && jar cfe capriccio.jar Main *.class
 
 classes:
 	cd ./build && javac *.java
