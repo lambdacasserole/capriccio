@@ -1,6 +1,6 @@
+import re
 from glob import glob
 from subprocess import check_output
-import re
 from shutil import copyfile
 
 
@@ -53,61 +53,92 @@ def fill_template (path, subs, comment=False):
     replace_in_file(path, all_subs)
 
 
-def enumerate_funcs (file):
-    output = check_output(['java', '-jar', 'humoresque.jar', '-e', file]).decode()
+def enumerate_funcs (path):
+    """ Returns a list of function names for functions present in a HAHA file.
+    Args:
+        path (str): The path of the target file.
+    """
+    output = check_output(['java', '-jar', 'humoresque.jar', '-e', path]).decode()
     names = filter(lambda x: x != '', output.split('\n'))
     return list(names)
 
 
-def get_arity (file, func):
-    output = check_output(['java', '-jar', 'humoresque.jar', '-a', func, file]).decode()
+def get_arity (path, func):
+    """ Returns the arity of a function present in a HAHA file.
+    Args:
+        path (str): The path of the target file.
+    """
+    output = check_output(['java', '-jar', 'humoresque.jar', '-a', func, path]).decode()
     return int(output)
 
 
-def transpile_func (file, func):
-    output = check_output(['java', '-jar', 'humoresque.jar', '-f', func, file]).decode()
+def transpile_func (path, func):
+    """ Transpiles a function present in a HAHA file to Java and returns it.
+    Args:
+        path (str): The path of the target file.
+    """
+    output = check_output(['java', '-jar', 'humoresque.jar', '-f', func, path]).decode()
     return output
 
-def gen_args (arity):
+
+def map_args (arity):
+    """ Generates an array-argument mapping for a function with the given arity.
+    Args:
+        arity (int): The arity.
+    """
     i = 0
-    out = ""
+    out = "" # Build output here.
     while i < arity:
         if len(out) > 0:
-            out += ", "
-        out += "args[" + str(i) + "]"
+            out += ', '
+        out += f'args[{i}]' # Add mapping between array member and argument.
         i += 1
     return out
 
-def gen_reg (names):
+
+def gen_reg (class_names):
+    """ Generates registration calls for funtions with the given class names.
+    Args:
+        arity (int): The arity.
+    """
     out = ""
-    i = 0
-    while i < len(names):
+    for class_name in class_names:
         if len(out) > 0:
-            out += "\n            "
-        out += "evaluator.addFunction(new " + names[i] + "Function());"
-        i += 1
+            out += '\n            '
+        out += f'evaluator.addFunction(new {class_name}());'
     return out
+
+
+# Some filesystem contants.
+SRC_DIR = './src'
+BUILD_DIR = './build'
+MAIN_FILE = f'{BUILD_DIR}/Main.java'
+
+# We'll need these for generating the main file.
+class_names = []
 
 # Go through each HAHA file in the `./src` folder.
-src_files = glob('./src/*.haha')
-copyfile('./build/Main.java.template', './build/Main.java')
-cap_names = []
+src_files = glob(f'{SRC_DIR}/*.haha')
 for src_file in src_files:
-    func_names = enumerate_funcs(src_file) # Get functions in file.
+    # Go through each function in each file.
+    func_names = enumerate_funcs(src_file)
     for func_name in func_names:
-        func_capitalized_name = func_name.capitalize()
-        cap_names += [func_capitalized_name]
-        out_file = './build/' + func_capitalized_name + 'Function.java'
-        copyfile('./build/NamedFunction.java.template', out_file)
-        transpiled = transpile_func(src_file, func_name).replace('\n', '\n    ').strip()
-        arity = get_arity(src_file, func_name)
-        args = gen_args(arity)
-        fill_template(out_file, [
-            ('capitalized_name', func_capitalized_name),
+        func_name_capitalized = func_name.capitalize() # Capitalize name for neat, conventional Java.
+        class_name = func_name_capitalized + 'Function'
+        class_names += [class_name] # Remember class name,
+        class_file = f'{BUILD_DIR}/' + class_name + '.java'
+        # Generate class file from template.
+        copyfile(f'{BUILD_DIR}/NamedFunction.java.template', class_file)
+        func_body = transpile_func(src_file, func_name).replace('\n', '\n    ').strip() # Transpile HAHA to Java.
+        func_arity = get_arity(src_file, func_name) # Determine function arity.
+        func_args = map_args(func_arity) # Generate array-argument mapping.
+        fill_template(class_file, [
+            ('capitalized_name', func_name_capitalized),
             ('name', func_name),
-            ('body', transpiled),
-            ('arity', str(arity)),
-            ('args', args)])
+            ('body', func_body),
+            ('arity', str(func_arity)),
+            ('args', func_args)])
 
-fill_template('./build/Main.java', [
-            ('function_registration', gen_reg(cap_names))])
+# Generate main file and ensure functions are registered in it.
+copyfile(f'{BUILD_DIR}/Main.java.template', MAIN_FILE)
+fill_template(MAIN_FILE, [('function_registration', gen_reg(class_names))])
